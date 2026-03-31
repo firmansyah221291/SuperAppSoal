@@ -60,7 +60,7 @@ export default function UserGuide({ isOpen, onClose }: Props) {
                 </div>
                 <div>
                   <h3 className="font-display font-bold text-xl">Petunjuk Penggunaan</h3>
-                  <p className="text-xs text-slate-500">Panduan langkah demi langkah menggunakan Super Soal.</p>
+                  <p className="text-xs text-slate-500">Panduan langkah demi langkah menggunakan Super App Soal.</p>
                 </div>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-all">

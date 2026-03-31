@@ -1,14 +1,6 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { FormData, QuestionData } from "../types";
 
 export async function generateQuestions(formData: FormData): Promise<QuestionData[]> {
-  const API_KEY = process.env.GEMINI_API_KEY;
-  if (!API_KEY) {
-    throw new Error("Gemini API Key is missing. Please add it to your secrets.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
-
   const questionTypesDesc = Object.entries(formData.questionCounts)
     .filter(([_, count]) => count > 0)
     .map(([type, count]) => `${count} soal ${type.replace(/_/g, ' ')}`)
@@ -40,45 +32,52 @@ export async function generateQuestions(formData: FormData): Promise<QuestionDat
     Output HARUS dalam format JSON sesuai schema.
   `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.ARRAY,
-        items: {
-          type: Type.OBJECT,
-          properties: {
-            id: { type: Type.STRING },
-            type: { type: Type.STRING, description: "Jenis soal (pilihan_ganda, benar_salah, dll)" },
-            soal: { type: Type.STRING },
-            pilihan: { 
-              type: Type.ARRAY, 
-              items: { type: Type.STRING },
-              description: "Pilihan jawaban (kosongkan jika isian/esai)"
-            },
-            kunci_jawaban: { type: Type.STRING },
-            pembahasan: { type: Type.STRING },
-            indikator_soal: { type: Type.STRING, description: "Indikator pencapaian kompetensi untuk soal ini" },
-            materi: { type: Type.STRING, description: "Materi pokok soal ini" },
-            level_kognitif: { type: Type.STRING, description: "Level kognitif (C1-C6)" },
-            kompetensi_dasar: { type: Type.STRING, description: "Kompetensi Dasar atau Capaian Pembelajaran" },
-          },
-          required: ["type", "soal", "pilihan", "kunci_jawaban", "pembahasan", "indikator_soal", "materi", "level_kognitif", "kompetensi_dasar"],
+  const schema = {
+    type: "ARRAY",
+    items: {
+      type: "OBJECT",
+      properties: {
+        id: { type: "STRING" },
+        type: { type: "STRING", description: "Jenis soal (pilihan_ganda, benar_salah, dll)" },
+        soal: { type: "STRING" },
+        pilihan: { 
+          type: "ARRAY", 
+          items: { type: "STRING" },
+          description: "Pilihan jawaban (kosongkan jika isian/esai)"
         },
+        kunci_jawaban: { type: "STRING" },
+        pembahasan: { type: "STRING" },
+        indikator_soal: { type: "STRING", description: "Indikator pencapaian kompetensi untuk soal ini" },
+        materi: { type: "STRING", description: "Materi pokok soal ini" },
+        level_kognitif: { type: "STRING", description: "Level kognitif (C1-C6)" },
+        kompetensi_dasar: { type: "STRING", description: "Kompetensi Dasar atau Capaian Pembelajaran" },
       },
+      required: ["type", "soal", "pilihan", "kunci_jawaban", "pembahasan", "indikator_soal", "materi", "level_kognitif", "kompetensi_dasar"],
     },
-  });
+  };
 
   try {
-    const result = JSON.parse(response.text || "[]");
+    const response = await fetch("/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ prompt, schema }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || "Gagal menghasilkan soal.");
+    }
+
+    const data = await response.json();
+    const result = JSON.parse(data.text || "[]");
     return result.map((q: any, index: number) => ({
       ...q,
       id: q.id || `q-${index}-${Date.now()}`,
     }));
-  } catch (e) {
-    console.error("Failed to parse AI response", e);
-    throw new Error("Gagal memproses hasil dari AI. Silakan coba lagi.");
+  } catch (e: any) {
+    console.error("AI Generation Error:", e);
+    throw new Error(e.message || "Gagal memproses hasil dari AI. Silakan coba lagi.");
   }
 }

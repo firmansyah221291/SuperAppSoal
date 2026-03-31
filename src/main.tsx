@@ -6,10 +6,12 @@ import './index.css';
 async function init() {
   try {
     const res = await fetch('/api/config');
-    const config = await res.json();
-    (globalThis as any).GEMINI_API_KEY = config.GEMINI_API_KEY;
+    if (res.ok) {
+      const config = await res.json();
+      console.log('Server configuration loaded. Key present:', config.hasKey);
+    }
   } catch (e) {
-    console.error('Failed to fetch config', e);
+    console.error('Failed to fetch server config', e);
   }
 
   createRoot(document.getElementById('root')!).render(
