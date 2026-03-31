@@ -1,9 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { FormData, QuestionData } from "../types";
 
-const API_KEY = process.env.GEMINI_API_KEY;
-
 export async function generateQuestions(formData: FormData): Promise<QuestionData[]> {
+  const API_KEY = process.env.GEMINI_API_KEY;
   if (!API_KEY) {
     throw new Error("Gemini API Key is missing. Please add it to your secrets.");
   }

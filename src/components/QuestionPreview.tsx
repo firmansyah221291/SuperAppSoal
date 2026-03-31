@@ -161,8 +161,10 @@ export default function QuestionPreview({ questions, formData, isLoading, onUpda
   const exportToWord = async () => {
     if (!formData || questions.length === 0) return;
 
-    const doc = new Document({
-      sections: [{
+    let sections: any[] = [];
+
+    if (currentView === 'soal') {
+      sections = [{
         properties: {},
         children: [
           // Header / Kop Surat
@@ -306,11 +308,202 @@ export default function QuestionPreview({ questions, formData, isLoading, onUpda
             }),
           ]),
         ],
-      }],
-    });
+      }];
+    } else if (currentView === 'kisi-kisi') {
+      sections = [{
+        properties: {},
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({
+                text: "KISI-KISI PENULISAN SOAL",
+                bold: true,
+                size: 28,
+              }),
+            ],
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({
+                text: formData.subject.toUpperCase(),
+                bold: true,
+                size: 24,
+              }),
+            ],
+          }),
+          new Paragraph({ text: "", spacing: { before: 400, after: 400 } }),
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "No", bold: true })], alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Kompetensi Dasar / CP", bold: true })], alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Materi", bold: true })], alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Indikator Soal", bold: true })], alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Level", bold: true })], alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Bentuk Soal", bold: true })], alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "No. Soal", bold: true })], alignment: AlignmentType.CENTER })] }),
+                ],
+              }),
+              ...questions.map((q, idx) => new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph({ text: (idx + 1).toString(), alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [new Paragraph(q.kompetensi_dasar || '-')] }),
+                  new TableCell({ children: [new Paragraph(q.materi || '-')] }),
+                  new TableCell({ children: [new Paragraph(q.indikator_soal || '-')] }),
+                  new TableCell({ children: [new Paragraph({ text: q.level_kognitif || '-', alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [new Paragraph({ text: q.type.replace(/_/g, ' '), alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [new Paragraph({ text: (idx + 1).toString(), alignment: AlignmentType.CENTER })] }),
+                ],
+              })),
+            ],
+          }),
+        ],
+      }];
+    } else if (currentView === 'rubrik') {
+      sections = [{
+        properties: {},
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({
+                text: "RUBRIK PENILAIAN",
+                bold: true,
+                size: 28,
+              }),
+            ],
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({
+                text: formData.subject.toUpperCase(),
+                bold: true,
+                size: 24,
+              }),
+            ],
+          }),
+          new Paragraph({ text: "", spacing: { before: 400, after: 400 } }),
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "No", bold: true })], alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Kriteria Penilaian / Kunci Jawaban", bold: true })], alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Skor Maksimal", bold: true })], alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Keterangan", bold: true })], alignment: AlignmentType.CENTER })] }),
+                ],
+              }),
+              ...questions.map((q, idx) => new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph({ text: (idx + 1).toString(), alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [
+                    new Paragraph({ children: [new TextRun({ text: `Kunci: ${q.kunci_jawaban}`, bold: true })] }),
+                    new Paragraph({ children: [new TextRun({ text: q.pembahasan, italics: true })] }),
+                  ] }),
+                  new TableCell({ children: [new Paragraph({ text: (q.type === 'esai' ? '20' : q.type === 'isian_singkat' ? '10' : '1'), alignment: AlignmentType.CENTER })] }),
+                  new TableCell({ children: [new Paragraph(q.type === 'pilihan_ganda' ? 'Jawaban benar skor 1, salah 0' : 'Sesuai kedalaman jawaban')] }),
+                ],
+              })),
+            ],
+          }),
+        ],
+      }];
+    } else if (currentView === 'kartu-soal') {
+      sections = [{
+        properties: {},
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({
+                text: "KARTU SOAL",
+                bold: true,
+                size: 28,
+              }),
+            ],
+          }),
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            children: [
+              new TextRun({
+                text: formData.subject.toUpperCase(),
+                bold: true,
+                size: 24,
+              }),
+            ],
+          }),
+          new Paragraph({ text: "", spacing: { before: 400, after: 400 } }),
+          ...questions.flatMap((q, idx) => [
+            new Table({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              rows: [
+                new TableRow({
+                  children: [
+                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: `KARTU SOAL NOMOR: ${idx + 1}`, bold: true })] })] }),
+                    new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: formData.subject.toUpperCase(), bold: true })], alignment: AlignmentType.CENTER })] }),
+                  ],
+                }),
+                new TableRow({
+                  children: [
+                    new TableCell({ columnSpan: 2, children: [
+                      new Paragraph({ children: [new TextRun({ text: "Kompetensi Dasar: ", bold: true }), new TextRun({ text: q.kompetensi_dasar || '-' })] }),
+                      new Paragraph({ children: [new TextRun({ text: "Materi: ", bold: true }), new TextRun({ text: q.materi || '-' })] }),
+                      new Paragraph({ children: [new TextRun({ text: "Indikator Soal: ", bold: true }), new TextRun({ text: q.indikator_soal || '-' })] }),
+                      new Paragraph({ children: [new TextRun({ text: "Level Kognitif: ", bold: true }), new TextRun({ text: q.level_kognitif || '-' })] }),
+                    ] }),
+                  ],
+                }),
+                new TableRow({
+                  children: [
+                    new TableCell({ columnSpan: 2, children: [
+                      new Paragraph({ children: [new TextRun({ text: "SOAL:", bold: true })], spacing: { before: 200 } }),
+                      new Paragraph({ text: q.soal }),
+                      ...(q.pilihan && q.pilihan.length > 0 ? q.pilihan.map((opt, i) => 
+                        new Paragraph({
+                          indent: { left: 360 },
+                          children: [new TextRun({ text: `${String.fromCharCode(65 + i)}. ${opt}`, italics: true })]
+                        })
+                      ) : []),
+                    ] }),
+                  ],
+                }),
+                new TableRow({
+                  children: [
+                    new TableCell({ columnSpan: 2, children: [
+                      new Paragraph({ children: [new TextRun({ text: "Kunci Jawaban: ", bold: true }), new TextRun({ text: q.kunci_jawaban })] }),
+                    ], shading: { fill: "F1F5F9" } }),
+                  ],
+                }),
+              ],
+            }),
+            new Paragraph({ text: "", spacing: { before: 400, after: 400 } }),
+          ]),
+        ],
+      }];
+    }
 
+    const doc = new Document({
+      sections: sections.map(section => ({
+        ...section,
+        properties: {
+          ...section.properties,
+          page: {
+            size: {
+              width: 11906, // A4 width in twips
+              height: 16838, // A4 height in twips
+            },
+          },
+        },
+      })),
+    });
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `Soal_${formData?.subject || 'Materi'}_${formData?.topic || 'AI'}.docx`);
+    saveAs(blob, `${currentView.replace(/-/g, '_')}_${formData?.subject || 'Materi'}_${formData?.topic || 'AI'}.docx`);
   };
 
   const copyToClipboard = async () => {
@@ -894,6 +1087,11 @@ export default function QuestionPreview({ questions, formData, isLoading, onUpda
               ))}
             </div>
           </div>
+        </div>
+
+        {/* Footer below preview hasil */}
+        <div className="mt-8 mb-12 text-center text-slate-400 font-medium text-sm no-print">
+          @superappsoal-gurukukaku2026
         </div>
       </div>
     </div>

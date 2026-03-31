@@ -67,26 +67,53 @@
 }
 
 @media print {
-  aside, header, .sticky, button, .no-print {
+  @page {
+    size: A4;
+    margin: 20mm;
+  }
+
+  aside, header, .sticky, button, .no-print, .toolbar {
     display: none !important;
   }
   
+  body {
+    background: white !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   main {
     padding: 0 !important;
     margin: 0 !important;
     display: block !important;
+    width: 100% !important;
   }
   
   .overflow-y-auto {
     overflow: visible !important;
+    height: auto !important;
   }
   
-  .bg-slate-50\/50, .bg-slate-50 {
+  .bg-slate-50\/50, .bg-slate-50, .bg-transparent {
     background: white !important;
   }
   
-  .shadow-xl {
+  .shadow-xl, .shadow-md, .shadow-sm {
     box-shadow: none !important;
+  }
+
+  .rounded-lg, .rounded-xl, .rounded-2xl {
+    border-radius: 0 !important;
+  }
+
+  /* Ensure the preview container takes full width on print */
+  #print-content, .max-w-\[800px\] {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
   }
 }
 
