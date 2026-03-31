@@ -1,7 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  // No client-side API keys needed for security
+  readonly VITE_GEMINI_API_KEY: string;
 }
 
 interface ImportMeta {

@@ -1,3 +1,4 @@
+import { GoogleGenAI, Type } from "@google/genai";
 import { FormData, QuestionData } from "../types";
 
 export async function generateQuestions(formData: FormData): Promise<QuestionData[]> {
@@ -33,29 +34,30 @@ export async function generateQuestions(formData: FormData): Promise<QuestionDat
   `;
 
   const schema = {
-    type: "ARRAY",
+    type: Type.ARRAY,
     items: {
-      type: "OBJECT",
+      type: Type.OBJECT,
       properties: {
-        id: { type: "STRING" },
-        type: { type: "STRING", description: "Jenis soal (pilihan_ganda, benar_salah, dll)" },
-        soal: { type: "STRING" },
+        id: { type: Type.STRING },
+        type: { type: Type.STRING, description: "Jenis soal (pilihan_ganda, benar_salah, dll)" },
+        soal: { type: Type.STRING },
         pilihan: { 
-          type: "ARRAY", 
-          items: { type: "STRING" },
+          type: Type.ARRAY, 
+          items: { type: Type.STRING },
           description: "Pilihan jawaban (kosongkan jika isian/esai)"
         },
-        kunci_jawaban: { type: "STRING" },
-        pembahasan: { type: "STRING" },
-        indikator_soal: { type: "STRING", description: "Indikator pencapaian kompetensi untuk soal ini" },
-        materi: { type: "STRING", description: "Materi pokok soal ini" },
-        level_kognitif: { type: "STRING", description: "Level kognitif (C1-C6)" },
-        kompetensi_dasar: { type: "STRING", description: "Kompetensi Dasar atau Capaian Pembelajaran" },
+        kunci_jawaban: { type: Type.STRING },
+        pembahasan: { type: Type.STRING },
+        indikator_soal: { type: Type.STRING, description: "Indikator pencapaian kompetensi untuk soal ini" },
+        materi: { type: Type.STRING, description: "Materi pokok soal ini" },
+        level_kognitif: { type: Type.STRING, description: "Level kognitif (C1-C6)" },
+        kompetensi_dasar: { type: Type.STRING, description: "Kompetensi Dasar atau Capaian Pembelajaran" },
       },
       required: ["type", "soal", "pilihan", "kunci_jawaban", "pembahasan", "indikator_soal", "materi", "level_kognitif", "kompetensi_dasar"],
     },
   };
 
+  // Try server-side first (for AI Studio / environments with backend)
   try {
     const response = await fetch("/api/generate", {
       method: "POST",
@@ -65,13 +67,36 @@ export async function generateQuestions(formData: FormData): Promise<QuestionDat
       body: JSON.stringify({ prompt, schema }),
     });
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || "Gagal menghasilkan soal.");
+    if (response.ok) {
+      const data = await response.json();
+      const result = JSON.parse(data.text || "[]");
+      return result.map((q: any, index: number) => ({
+        ...q,
+        id: q.id || `q-${index}-${Date.now()}`,
+      }));
     }
+  } catch (e) {
+    console.warn("Server-side generation failed or not available, falling back to client-side.", e);
+  }
 
-    const data = await response.json();
-    const result = JSON.parse(data.text || "[]");
+  // Client-side fallback (for Netlify / static deployments)
+  const API_KEY = (import.meta.env.VITE_GEMINI_API_KEY as string) || (globalThis as any).GEMINI_API_KEY;
+  if (!API_KEY) {
+    throw new Error("Gemini API Key is missing. Please add it to your environment variables (VITE_GEMINI_API_KEY).");
+  }
+
+  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  const response = await ai.models.generateContent({
+    model: "gemini-3-flash-preview",
+    contents: prompt,
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: schema as any,
+    },
+  });
+
+  try {
+    const result = JSON.parse(response.text || "[]");
     return result.map((q: any, index: number) => ({
       ...q,
       id: q.id || `q-${index}-${Date.now()}`,
