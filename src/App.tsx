@@ -111,16 +111,11 @@ export default function App() {
             className="w-72 bg-white border-r border-slate-200 flex flex-col fixed inset-y-0 z-50 lg:relative"
           >
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 overflow-hidden rounded-xl shadow-sm border border-slate-100 bg-white p-1">
-                  <img 
-                    src="https://image2url.com/r2/default/images/1774972532622-63bd11d0-b0c3-48cd-939d-c666313846b6.png" 
-                    alt="Super App Soal Logo" 
-                    className="w-full h-full object-contain"
-                    referrerPolicy="no-referrer"
-                  />
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-brand-green rounded-lg flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-white" />
                 </div>
-                <h1 className="font-display font-bold text-xl tracking-tight">Super <span className="text-brand-green">App Soal</span></h1>
+                <h1 className="font-display font-bold text-xl tracking-tight">Super <span className="text-brand-green">Soal</span></h1>
               </div>
               <button onClick={() => setIsSidebarOpen(false)} className="lg:hidden">
                 <X className="w-5 h-5 text-slate-400" />
@@ -192,7 +187,7 @@ export default function App() {
             )}
             <div className="hidden sm:block">
               <p className="text-sm font-medium text-slate-500">Selamat Datang,</p>
-              <p className="text-sm font-bold text-slate-900">Admin Super App Soal</p>
+              <p className="text-sm font-bold text-slate-900">Admin Super Soal</p>
             </div>
           </div>
 

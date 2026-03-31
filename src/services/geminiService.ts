@@ -2,9 +2,9 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { FormData, QuestionData } from "../types";
 
 export async function generateQuestions(formData: FormData): Promise<QuestionData[]> {
-  const API_KEY = process.env.GEMINI_API_KEY || (import.meta.env.VITE_GEMINI_API_KEY as string);
+  const API_KEY = process.env.GEMINI_API_KEY;
   if (!API_KEY) {
-    throw new Error("Gemini API Key is missing. Please add it to your secrets (AI Studio) or environment variables (Netlify).");
+    throw new Error("Gemini API Key is missing. Please add it to your secrets.");
   }
 
   const ai = new GoogleGenAI({ apiKey: API_KEY });
